@@ -179,12 +179,41 @@ async function run() {
       });
 
       // Get An User Data
-    app.get("/cards/:email", async (req, res) => {
-      const email = req.params.email;
-      const query = { email: email };
-      const user = await addCardsCollection.find(query).toArray();
-      res.send(user);
-    });
+    // app.get("/cards/:email", async (req, res) => {
+    //   const email = req.params.email;
+    //   const query = { email: email };
+    //   const user = await addCardsCollection.find(query).toArray();
+    //   res.send(user);
+    // });
+
+    app.get('/cards/:email', verifyToken, async(req, res)=>{
+      const query = {email: req.params.email}
+      if(req.params.email !== req.decoded.email){
+        return res.status(403).send({message: 'forbidden access'})
+      }
+      const result = await addCardsCollection.find(query).toArray()
+      res.send(result)
+    })
+
+    
+// app.get("/cards/:email", async (req, res) => {
+//   const email = req.params.email;
+
+//   try {
+//     const user = await addCardsCollection.findOne({ email: email });
+//     if (user) {
+//       res.status(200).send(user);
+//     } else {
+//       res.status(404).send({ message: "User not found" });
+//     }
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).send({ message: "Internal Server Error" });
+//   }
+// });
+
+
+
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
