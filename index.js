@@ -3,7 +3,8 @@ const cors = require("cors");
 require("dotenv").config();
 const app = express();
 const jwt = require("jsonwebtoken");
-// const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+console.log('Stripe Secret Key:', process.env.STRIPE_SECRET_KEY);
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5000;
 
 app.use(
@@ -42,6 +43,9 @@ async function run() {
     const addUserCollection = client.db("MediShop").collection("users");
     const addProductsCollection = client.db("MediShop").collection("products");
     const addCardsCollection = client.db("MediShop").collection("cards");
+    const paymentCollection = client.db("MediShop").collection("payments");
+ 
+    
 
 
 
@@ -185,6 +189,32 @@ async function run() {
       const user = await addCardsCollection.find(query).toArray();
       res.send(user);
     });
+
+    // payment 
+  
+   
+    app.post("/payments", verifyToken, async (req, res) => {
+      const item = req.body;
+      const result = await paymentCollection.insertOne(item);
+      res.send(result);
+    })
+    // app.get('/payments', verifyToken, async (req, res) => {
+    //   try {
+    //     const query = {}; // Customize this query as needed (e.g., filter by user, status)
+    //     const orders = await paymentCollection.find(query).toArray();
+    //     res.send(orders);
+    //   } catch (error) {
+    //     console.error('Error fetching orders:', error);
+    //     res.status(500).send({ error: 'Failed to fetch orders' });
+    //   }
+    // });
+
+    app.get("/payments", async (req, res) => {
+      const result = await paymentCollection.find().toArray();
+      res.send(result);
+    });
+
+
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
