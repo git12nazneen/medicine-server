@@ -169,6 +169,42 @@ async function run() {
       res.send(result);
     });
 
+    app.patch("/products/:id/decrement", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+    
+      try {
+        // Find the product by ID
+        const product = await addProductsCollection.findOne(query);
+    
+        if (!product) {
+          return res.status(404).json({ message: "Product not found" });
+        }
+    
+        // Check if the packet count is greater than 0
+        if (product.packet > 0) {
+          // Decrement the packet count
+          const updatedPacketCount = product.packet - 1;
+    
+          // Update the product document with the new packet count
+          const updateDoc = {
+            $set: { packet: updatedPacketCount },
+          };
+          const result = await addProductsCollection.updateOne(query, updateDoc);
+    
+          return res.status(200).json({
+            message: "Packet count updated successfully",
+            packet: updatedPacketCount,
+          });
+        } else {
+          return res.status(400).json({ message: "Product is out of stock" });
+        }
+      } catch (error) {
+        console.error("Error updating packet count:", error);
+        return res.status(500).json({ message: "Server error" });
+      }
+    });
+
     // added cards collection
 
      app.post("/cards", verifyToken, async (req, res) => {
@@ -192,23 +228,13 @@ async function run() {
 
     // payment 
   
-   
+  //  etake token dibo
     app.post("/payments", verifyToken, async (req, res) => {
       const item = req.body;
       const result = await paymentCollection.insertOne(item);
       res.send(result);
     })
-    // app.get('/payments', verifyToken, async (req, res) => {
-    //   try {
-    //     const query = {}; // Customize this query as needed (e.g., filter by user, status)
-    //     const orders = await paymentCollection.find(query).toArray();
-    //     res.send(orders);
-    //   } catch (error) {
-    //     console.error('Error fetching orders:', error);
-    //     res.status(500).send({ error: 'Failed to fetch orders' });
-    //   }
-    // });
-
+  // etake token r admin dite hobe
     app.get("/payments", async (req, res) => {
       const result = await paymentCollection.find().toArray();
       res.send(result);
